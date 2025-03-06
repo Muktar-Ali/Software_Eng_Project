@@ -1,10 +1,26 @@
-<html>
-  <head>
-    <title>Welcome to CalTall</title>
-  </head>
-  <body>
+{% extends "home/base.html" %}
+
+{% block title %}Welcome to CalTall{% endblock %}
+
+{% block content %}
+<div class="container">
     <h1>Welcome to CalTall!</h1>
     <p>Your personal calorie tracker—simple, accurate, and effortless.</p>
     <p>We help you track your daily intake so you can focus on your health and fitness goals.</p>
-  </body>
-</html>
+
+    <div class="login-box">
+        <h3>Login</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+        <p>Don’t have an account? <a href="#">Sign up!</a></p>
+    </div>
+</div>
+{% endblock %}
