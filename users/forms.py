@@ -18,12 +18,12 @@ class SignupForm(forms.ModelForm):
             'height': 'Height (inches):',
             'age': 'Age (years):',
         }
-        def save(self, commit=True):
-            #create a user object from the form data without saving
-            user = super().save(commit=False)
-            # Hash the password before saving
-            user.password = make_password(user.password)
-            if commit:
-                #save the user object to the database
-                user.save()
-            return user
+    def save(self, commit=True):
+        #create a user object from the form data without saving
+        user = super().save(commit=False)
+        # Hash the password before saving
+        user.password = make_password(user.password)
+        if commit:
+            #save the user object to the database
+            user.save()
+        return user
