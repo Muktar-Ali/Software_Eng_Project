@@ -2,6 +2,7 @@
 from django import forms
 from .models import CustomUser
 from django.contrib.auth.hashers import make_password
+from django.core.exceptions import ValidationError
 
 class SignupForm(forms.ModelForm):
     class Meta:
@@ -18,6 +19,11 @@ class SignupForm(forms.ModelForm):
             'height': 'Height (inches):',
             'age': 'Age (years):',
         }
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        if ' ' in password:
+            raise ValidationError('Password cannot contain spaces.')
+        return password
     def save(self, commit=True):
         #create a user object from the form data without saving
         user = super().save(commit=False)
