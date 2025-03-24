@@ -10,3 +10,4 @@ class UserMainView(LoginRequiredMixin, TemplateView):
     #Specifies what template to use when rendering the view
     template_name = 'users/main.html'
     login_url = '/login'
+
