@@ -140,3 +140,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 AUTH_USER_MODEL = 'users.CustomUser'
 
 LOGIN_REDIRECT_URL = '/user/main'
+
+# FatSecret API Configuration
+FATSECRET_CLIENT_ID = "2a47918da7b04dc29424e0350754b5ed"
+FATSECRET_CLIENT_SECRET = "f97824d32c6a405e86e52ea74a4c3bc4"
