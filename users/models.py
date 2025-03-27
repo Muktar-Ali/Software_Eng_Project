@@ -6,6 +6,9 @@ from django.core.exceptions import ValidationError
 def no_whitespace_validator(value):
     if " " in value:
         raise ValidationError("This field cannot contain whitespace.")
+def no_empty_string(value):
+    if value == '':
+        raise ValidationError('This field cannot be empty.')
 
 # Our custom made user model which is implemented off of the AbstractUser class
 class CustomUser(AbstractUser):
