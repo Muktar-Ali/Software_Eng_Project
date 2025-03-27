@@ -8,4 +8,5 @@ urlpatterns = [
     #The .as_view() method is needed to convert the view into a usable function
     #reverse URL lookups in templates and views are allowed because of name='home'
     path('main', views.UserMainView.as_view(), name='users.main'),
+    path('profile', views.UserUpdateView.as_view(), name='users.profile'),
 ]

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Profile Page</h1>
+{% if messages %}
+    <div class="alert alert-success">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+<form method="POST" style="text-align: left; margin: 0 auto; width: 600px;">{% csrf_token %}
+    {{form.as_p}}
+    <input class='btn btn-secondary' type="submit" name="Update" value="Update"/>
+</form>
+{% endblock %}
