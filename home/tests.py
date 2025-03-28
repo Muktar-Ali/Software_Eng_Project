@@ -112,4 +112,45 @@ class UserTestCase(TestCase):
         form.save()
         # Try logging in with wrong password
         self.assertFalse(self.client.login(username="validUser", password="WrongPassword"))
-    
+    def test_BlankSpacesInSignup(self):
+        dict_spaces = {
+            'username': "     ", #username contains only spaces, which should be invalid
+            'first_name': "  Test  ", #first name had leading and trailing spaces
+            'last_name': "User   ", # last name has trailing spaces
+            'email': "validemail@gmail.com", #email and password is valid
+            'password': "ValidPassword123",
+            'gender': 'M',
+            'age': 24,
+            'height': 45,
+            'weight': 160,
+            'activity_level': "Light",
+        }
+        form=SignupForm(dict_spaces)
+        #check that the form is invalid due to the username containing only spaces
+        self.assertFalse(form.is_valid(), "Form should be invalud when username contains only spaces.")
+        #ensure that the usernmae field specifically triggered an error
+        self.assertIn('username', form.errors, "Username field should trigger an error for blank spaces.")
+        #if the form is valid, get cleaned data, otherwise, set an empty dict
+        cleaned_data=form.cleaned_data if form.is_valid() else{}
+        #check that the first name is correctly stripped of extra spaces
+        self.assertEqual(cleaned_data.get('first_name', '').strip(),"Test", "First name should be stripped of spaces.")
+        #check that the last name is correctly stipped of extra spaces
+        self.assertEqual(cleaned_data.get('last_name', '').strip(), "User", "Last name should be stripped of spaces")
+    def test_InvalidEmailFormat(self):
+        dict_invalid_email={
+        'username': "invalidEmailUser",
+        'first_name': "Invalid",
+        'last_name': "Email",
+        'email': "not-email", #invalid email format
+        'password': "ValidPassword123", 
+        'gender': 'M',
+        'age': 24,
+        'height': 45,
+        'weight': 160,
+        'activity_level': "Light",
+        }
+        form=SignupForm(dict_invalid_email)
+        #check that the form is invalid due to incorrect email format
+        self.assertFalse(form.is_valid(),"Form should be invalid with an incorrect email format.")
+        #ensure that the email field specifically triggered an error
+        self.assertIn('email', form.errors, "Email field should trigger an error for invalid format.")
