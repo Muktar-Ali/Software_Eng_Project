@@ -17,9 +17,10 @@ class UserTestCase(TestCase):
             'weight':138,
             'activity_level':"Light",   
         }
-        form = SignupForm(dict)
+        form = SignupForm(data=dict)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
         form.save()
-        CustomUser.objects.get(username=dict['username'])
+        self.assertTrue(CustomUser.objects.filter(username=dict['username']).exists())
     def test_LoginTest(self):
         dict = {
             'username':"anotherTestUser",
@@ -33,7 +34,8 @@ class UserTestCase(TestCase):
             'weight':139,
             'activity_level':"Sedentary", 
         }
-        form = SignupForm(dict)
+        form = SignupForm(data=dict)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
         form.save()
         self.assertTrue(self.client.login(username="anotherTestUser", password="NextBestTestUser"))
     def test_LogoutTest(self):
@@ -49,8 +51,11 @@ class UserTestCase(TestCase):
             'weight':133,
             'activity_level':"Sedentary", 
         }
-        form = SignupForm(dict)
+        form = SignupForm(data=dict)
+        self.assertTrue(form.is_valid(), f"Form errors: {form.errors}")
         form.save()
         self.client.login(username="ThirdTestUser", password="ThreeTestUser")
         self.client.logout()
+        response = self.client.get("/")
+        self.assertNotIn('_auth_user_id', self.client.session)
     
