@@ -9,4 +9,5 @@ urlpatterns = [
     #reverse URL lookups in templates and views are allowed because of name='home'
     path('main', views.UserMainView.as_view(), name='users.main'),
     path('profile', views.UserUpdateView.as_view(), name='users.profile'),
+    path('logs', views.UserLogsView.as_view(), name='users.logs'),
 ]

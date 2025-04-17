@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
-
+from django.utils import timezone
 def no_whitespace_validator(value):
     if " " in value:
         raise ValidationError("This field cannot contain whitespace.")
@@ -45,7 +45,49 @@ class CustomUser(AbstractUser):
         verbose_name_plural = "Users"
 # The log class which contains the current daily calorie count and the optimal calorie count
 class Log(models.Model):
-    dailyCalorieCount = models.FloatField()
-    dailyOptimalCount = models.FloatField()
+    dailyCalorieCount = models.FloatField(default=0.0)
+    dailyOptimalCount = models.FloatField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="log")
+    @property
+    def relative_date(self):
+        delta = timezone.now().date() - self.created.date()
+        if delta.days == 0:
+            return "Today"
+        elif delta.days == 1:
+            return "1 day ago"
+        else:
+            return f"{delta.days} days ago"
+    def save(self, *args, **kwargs):
+        # Calculate dailyOptimalCount (TDEE) before saving the log entry
+        self.dailyOptimalCount = self.calculate_tdee()
+        super(Log, self).save(*args, **kwargs)
+
+    def calculate_tdee(self):
+        """Calculate Total Daily Energy Expenditure (TDEE) using the Mifflin-St Jeor Equation."""
+        user = self.user
+        weight = user.weight  # in kg
+        height = user.height  # in cm
+        age = user.age
+        gender = user.gender
+
+        # Calculate BMR using the Mifflin-St Jeor Equation
+        if gender == 'M':
+            bmr = 10 * weight + 6.25 * height - 5 * age + 5
+        elif gender == 'F':
+            bmr = 10 * weight + 6.25 * height - 5 * age - 161
+        else:
+            bmr = 10 * weight + 6.25 * height - 5 * age  # For 'Other' gender (or if unspecified)
+
+        # Adjust BMR for activity level to get TDEE
+        activity_multiplier = {
+            'Sedentary': 1.2,
+            'Light': 1.375,
+            'Moderate': 1.55,
+            'Heavy': 1.725,
+            'Athlete': 1.9
+        }
+
+        tdee = bmr * activity_multiplier.get(user.activity_level, 1.2)  # Default to 'Sedentary' if no match
+
+        return tdee
