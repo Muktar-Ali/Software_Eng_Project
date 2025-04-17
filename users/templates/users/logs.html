@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="text-align: center; margin-bottom: 20px;">Calorie Log</h1>
+
+<div style="display: flex; justify-content: center;">
+    <table style="border-collapse: collapse; width: 80%; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <thead style="background-color: #f2f2f2;">
+            <tr>
+                <th style="padding: 12px; border: 1px solid #ddd;">Date</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Calorie Intake</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Ideal Intake</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ log.relative_date }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ log.dailyCalorieCount }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ log.dailyOptimalCount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

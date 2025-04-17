@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from django.views.generic import TemplateView, CreateView, DetailView, ListView, UpdateView
 from django.views.generic.edit import DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .models import CustomUser
+from .models import *
 from .forms import ProfileUpdateForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
@@ -36,3 +36,10 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
 
         messages.success(self.request, "Profile updated successfully!")
         return response
+class UserLogsView(LoginRequiredMixin, ListView):
+    model = Log
+    template_name = 'users/logs.html'
+    login_url = '/login'
+    context_object_name = 'logs'
+    def get_queryset(self):
+        return Log.objects.filter(user=self.request.user).order_by('-created')

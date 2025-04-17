@@ -7,8 +7,9 @@ from django.views.generic.edit import CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from users.forms import SignupForm
-from users.models import CustomUser
-
+from users.models import *
+from django.utils import timezone
+from datetime import timedelta
 # Create your views here.
 #This view inherits from Templateview
 class SignupView(CreateView):
@@ -26,6 +27,25 @@ class LogoutInterfaceView(LogoutView):
 
 class LoginInterfaceView(LoginView):
     template_name = 'home/login.html'
+    def get(self, request, *args, **kwargs):
+        return super().get(request, *args, **kwargs)
+    
+    def handle_user_login(self, user):
+        today = timezone.now().date()
+        
+        # Check if a log exists for today
+        if not Log.objects.filter(user=user, created__date=today).exists():
+            Log.objects.create(user=user)
+        
+        # Delete logs older than 7 days
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        Log.objects.filter(user=user, created__lt=seven_days_ago).delete()
+
+    def form_valid(self, form):
+        # runs the previous method after a successful login
+        response = super().form_valid(form)
+        self.handle_user_login(self.request.user)
+        return response
 
 class HomeView(TemplateView):
     #Specifies what template to use when rendering the view
