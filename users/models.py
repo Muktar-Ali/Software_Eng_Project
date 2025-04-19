@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+from datetime import date
 
 def no_whitespace_validator(value):
     if " " in value:
@@ -44,12 +45,45 @@ class CustomUser(AbstractUser):
     class Meta:
         verbose_name = "User"
         verbose_name_plural = "Users"
+    
+    def save(self, *args, **kwargs):
+            if self.pk:  # Only for existing users
+                original = CustomUser.objects.get(pk=self.pk)
+                if (original.weight != self.weight or 
+                    original.height != self.height or
+                    original.age != self.age or
+                    original.gender != self.gender or
+                    original.activity_level != self.activity_level):
+                        self.update_future_logs_tdee()
+            super().save(*args, **kwargs)
+        
+    def update_future_logs_tdee(self):
+        """Update TDEE for today and future logs when any relevant metric changes"""
+        from django.utils import timezone
+        today = timezone.now().date()
+        
+        logs = Log.objects.filter(
+            user=self,
+            log_date__gte=today
+        )
+        
+        for log in logs:
+            log.dailyOptimalCount = log.calculate_tdee()
+            log.save(update_fields=['dailyOptimalCount'])
+
 # The log class which contains the current daily calorie count and the optimal calorie count
 class Log(models.Model):
     dailyCalorieCount = models.FloatField(default=0.0)
     dailyOptimalCount = models.FloatField(null=True, blank=True)
     created = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="log")
+
+    log_date = models.DateField(default=date.today)
+    
+    class Meta:
+        unique_together = ('user', 'log_date')  # Ensures one log per user per day
+        ordering = ['-log_date']
+
     @property
     def relative_date(self):
         delta = timezone.now().date() - self.created.date()
@@ -74,8 +108,7 @@ class Log(models.Model):
         self.save(update_fields=['dailyCalorieCount'])
 
     def save(self, *args, **kwargs):
-        # Only calculate TDEE if it's not set or user data changed
-        if not self.dailyOptimalCount or not self.pk:
+        if not self.pk or 'dailyOptimalCount' not in kwargs.get('update_fields', []):
             self.dailyOptimalCount = self.calculate_tdee()
         super().save(*args, **kwargs)
 

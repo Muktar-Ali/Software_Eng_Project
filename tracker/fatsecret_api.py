@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class FatSecretAPI:
     TOKEN_URL = "https://oauth.fatsecret.com/connect/token"
     API_URL = "https://platform.fatsecret.com/rest/server.api"
-    TOKEN_EXPIRY = 3600  # Typically OAuth tokens expire in 1 hour
+    TOKEN_EXPIRY = 3600  # seconds (1 hour)
 
     def __init__(self):
         self.client_id = settings.FATSECRET_CLIENT_ID
@@ -30,7 +30,7 @@ class FatSecretAPI:
         self._token_expiry = None
 
     def get_access_token(self) -> str:
-        """Get or refresh the access token"""
+        """Get/refresh the access token"""
         if self._access_token and timezone.now().timestamp() < self._token_expiry:
             return self._access_token
 

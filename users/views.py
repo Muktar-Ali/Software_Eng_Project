@@ -29,13 +29,31 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
         kwargs['current_password'] = self.get_object().password
         return kwargs
     def form_valid(self, form):
-        response = super().form_valid(form)
+        # Store original values before saving
+        original_values = {
+            'weight': self.object.weight,
+            'height': self.object.height,
+            'age': self.object.age,
+            'gender': self.object.gender,
+            'activity_level': self.object.activity_level  # Add this line
+        }
         
-        # Ensure user stays logged in after updating username or password
-        update_session_auth_hash(self.request, self.object)  
-
+        response = super().form_valid(form)
+        update_session_auth_hash(self.request, self.object)
+        
+        # Check if any TDEE-relevant fields changed
+        if (original_values['weight'] != self.object.weight or
+            original_values['height'] != self.object.height or
+            original_values['age'] != self.object.age or
+            original_values['gender'] != self.object.gender or
+            original_values['activity_level'] != self.object.activity_level):  # Add this line
+            
+            messages.info(self.request, 
+                        "Your calorie targets have been updated to reflect your new profile information!")
+        
         messages.success(self.request, "Profile updated successfully!")
         return response
+
 class UserLogsView(LoginRequiredMixin, ListView):
     model = Log
     template_name = 'users/logs.html'
