@@ -12,7 +12,7 @@ class FoodSearchForm(forms.Form):
         })
     )
 
-class AddConsumedFoodForm(forms.ModelForm):  # Changed from forms.Form to forms.ModelForm
+class AddConsumedFoodForm(forms.ModelForm):
     class Meta:
         model = ConsumedFood
         fields = ['servings', 'date_consumed']

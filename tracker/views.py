@@ -119,7 +119,7 @@ def add_consumed_food(request, food_id=None):
             # Update log
             log, _ = Log.objects.get_or_create(
                 user=request.user,
-                created__date=date.today(),  # Use date.today() instead of date_consumed
+                created__date=date.today(),
                 defaults={
                     'user': request.user,
                     'created': timezone.now()  # Set actual datetime
@@ -133,7 +133,7 @@ def add_consumed_food(request, food_id=None):
             )['total'] or 0.0
             log.save()
             
-            messages.success(request, "Food added to your diary!")
+            messages.success(request, "Food added to your log!")
             return redirect('tracker:add_consumed_food_with_param', food_id=food_id)
     
     # Render the template with the form and food data
@@ -154,13 +154,13 @@ def calorie_log(request, days=7):
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=days-1)
     
-    # Get or create today's log
+    # Get/create today's log
     today_log, created = Log.objects.get_or_create(
         user=request.user,
         created__date=end_date,
         defaults={'user': request.user}
     )
-    ideal_intake = today_log.dailyOptimalCount  # This uses your TDEE calculation
+    ideal_intake = today_log.dailyOptimalCount  # This uses the TDEE calculation
     
     # Get daily calorie totals
     log_entries = []
