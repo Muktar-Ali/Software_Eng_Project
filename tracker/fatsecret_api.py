@@ -14,124 +14,150 @@ from django.conf import settings
 from django.db import models
 from .models import ConsumedFood
 from django.utils import timezone
+import logging
+
+logger = logging.getLogger(__name__)
 
 class FatSecretAPI:
     TOKEN_URL = "https://oauth.fatsecret.com/connect/token"
-    API_URL = "https://platform.fatsecret.com/rest/server.api" # Method based integration
-
+    API_URL = "https://platform.fatsecret.com/rest/server.api"
+    TOKEN_EXPIRY = 3600  # Typically OAuth tokens expire in 1 hour
 
     def __init__(self):
         self.client_id = settings.FATSECRET_CLIENT_ID
         self.client_secret = settings.FATSECRET_CLIENT_SECRET
+        self._access_token = None
+        self._token_expiry = None
 
+    def get_access_token(self) -> str:
+        """Get or refresh the access token"""
+        if self._access_token and timezone.now().timestamp() < self._token_expiry:
+            return self._access_token
 
-    # Gets the access token
-    def get_access_token(self):
-        response = requests.post(
-            self.TOKEN_URL,
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            data = {
-                'grant_type': 'client_credentials',
-                'scope': "basic",
-            },
-            auth = (self.client_id, self.client_secret)
-        )
-        
-        if response.status_code != 200:
-            print(f"Error: {response.status_code}, {response.text}")
+        try:
+            response = requests.post(
+                self.TOKEN_URL,
+                headers={'Content-Type': 'application/x-www-form-urlencoded'},
+                data={'grant_type': 'client_credentials', 'scope': "basic"},
+                auth=(self.client_id, self.client_secret),
+                timeout=10
+            )
+            
+            response.raise_for_status()
+            token_data = response.json()
+            self._access_token = token_data.get("access_token")
+            self._token_expiry = timezone.now().timestamp() + self.TOKEN_EXPIRY
+            return self._access_token
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get access token: {e}")
             return None
-        # Returns access token
-        return response.json().get("access_token")
 
-    
-    # Searches food in the database and gives the first JSON response
-    def search_food(self, query):
-        # Retrieves the access token
+    def search_food(self, query: str, max_results: int = 10) -> dict:
+        """Search for food items"""
         access_token = self.get_access_token()
-
-        response = requests.get(
-            self.API_URL,
-            headers = {
-                "Authorization": f"Bearer {access_token}"
-            },
-            params = {
-                "method": "foods.search",
-                "format": "json",
-                "search_expression": query
-            }
-        )
-
-        if response.status_code != 200:
-            print(f"Error: {response.status_code}, {response.text}")
+        if not access_token:
             return None
 
-        return response.json() # Returns JSON response from FatSecret
+        try:
+            response = requests.get(
+                self.API_URL,
+                headers={"Authorization": f"Bearer {access_token}"},
+                params={
+                    "method": "foods.search",
+                    "format": "json",
+                    "search_expression": query,
+                    "max_results": max_results
+                },
+                timeout=10
+            )
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Food search failed: {e}")
+            return None
 
-
-    # Gets the food from the database
-    def get_food(self, food_id):
-        # Retrieves the access token
+    def get_food(self, food_id: str) -> dict:
+        """Get detailed food information"""
         access_token = self.get_access_token()
-
-        response = requests.get(
-            self.API_URL,
-            headers = {
-                "Authorization": f"Bearer {access_token}"
-            },
-            params = {
-                "method": "food.get",
-                "food_id": str(food_id),
-                "format": "json",
-            }
-        )
-
-        if response.status_code != 200:
-            print(f"Error: {response.status_code}, {response.text}")
+        if not access_token:
             return None
 
-        return response.json() # Returns JSON response from FatSecret
-    
-    
-    # Gets the calories from food
-    def get_calories(self, food_id, serving_size=0):
+        try:
+            response = requests.get(
+                self.API_URL,
+                headers={"Authorization": f"Bearer {access_token}"},
+                params={
+                    "method": "food.get",
+                    "food_id": str(food_id),
+                    "format": "json",
+                },
+                timeout=10
+            )
+            response.raise_for_status()
+            return response.json()
+            
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Failed to get food {food_id}: {e}")
+            return None
+
+    def get_calories(self, food_id: str, serving_size: int = 0) -> int:
+        """Get calories for a specific food and serving"""
         food_data = self.get_food(food_id)
         if not food_data or "food" not in food_data:
             return None
 
         try:
             servings = food_data["food"]["servings"]["serving"]
-            if not servings:
-                return None
-
-            # Get the specified serving entry (default: first one)
+            if isinstance(servings, dict):  # Sometimes API returns single serving as dict
+                servings = [servings]
+                
             serving = servings[serving_size]
             return int(serving["calories"])
-
-        except (KeyError, IndexError, ValueError) as e:
-            print(f"Failed to parse calories: {e}")
+            
+        except (KeyError, IndexError, ValueError, TypeError) as e:
+            logger.error(f"Failed to parse calories for food {food_id}: {e}")
             return None
-    
 
-    # Tallies up the calories
-    def tally_calories(self, user_id, date = None):
+    def tally_calories(self, user_id: int, date=None) -> float:
+        """Calculate total calories for a user on a specific date"""
         if date is None:
             date = timezone.now().date()
         
-        # Gets all the food the user consumed
         consumed_foods = ConsumedFood.objects.filter(
-            user_id = user_id,
-            date_consumed = date
+            user_id=user_id,
+            date_consumed=date
         )
 
         total_calories = 0.0
 
-        # Calculates the total calories
         for food in consumed_foods:
             calories = self.get_calories(food.fatsecret_food_id)
             if calories is not None:
-                servings = getattr(food, 'servings', 1.0)
                 total_calories += float(calories) * float(food.servings)
         
-        return round(total_calories, 2) # Rounds the total calories to 2 decimal places
+        return round(total_calories, 2)
+    
+    def get_nutritional_facts(self, food_id: str, serving_size: int = 0) -> dict:
+        """Get nutritional facts for a specific food and serving"""
+        food_data = self.get_food(food_id)
+        if not food_data or "food" not in food_data:
+            return None
+
+        try:
+            servings = food_data["food"]["servings"]["serving"]
+            if isinstance(servings, dict):  # Handle single serving case
+                servings = [servings]
+                
+            serving = servings[serving_size]
+            return {
+                'calories': serving.get("calories"),
+                'protein': serving.get("protein"),
+                'fat': serving.get("fat"),
+                'carbs': serving.get("carbohydrate"),
+                'serving_description': serving.get("serving_description")
+            }
+        except (KeyError, IndexError, ValueError, TypeError) as e:
+            logger.error(f"Failed to parse nutrition for food {food_id}: {e}")
+            return None

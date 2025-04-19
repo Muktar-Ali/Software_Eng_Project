@@ -16,3 +16,8 @@ def update_today_log_daily_optimal_count(sender, instance, **kwargs):
     except Log.DoesNotExist:
         # No log for today, so do nothing
         pass
+
+@receiver(post_save, sender=CustomUser)
+def create_first_log(sender, instance, created, **kwargs):
+    if created:
+        Log.objects.create(user=instance)
