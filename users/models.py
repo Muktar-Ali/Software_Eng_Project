@@ -3,6 +3,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
+
 def no_whitespace_validator(value):
     if " " in value:
         raise ValidationError("This field cannot contain whitespace.")
@@ -58,10 +59,25 @@ class Log(models.Model):
             return "1 day ago"
         else:
             return f"{delta.days} days ago"
+    
+    def update_calories(self):
+        """More efficient version using stored calories"""
+        from tracker.models import ConsumedFood
+        from django.db.models import Sum, F
+        
+        self.dailyCalorieCount = ConsumedFood.objects.filter(
+            user=self.user,
+            date_consumed=self.created.date()
+        ).aggregate(
+            total=Sum(F('servings') * F('calories_per_serving'))
+        )['total'] or 0.0
+        self.save(update_fields=['dailyCalorieCount'])
+
     def save(self, *args, **kwargs):
-        # Calculate dailyOptimalCount (TDEE) before saving the log entry
-        self.dailyOptimalCount = self.calculate_tdee()
-        super(Log, self).save(*args, **kwargs)
+        # Only calculate TDEE if it's not set or user data changed
+        if not self.dailyOptimalCount or not self.pk:
+            self.dailyOptimalCount = self.calculate_tdee()
+        super().save(*args, **kwargs)
 
     def calculate_tdee(self):
         """Calculate Total Daily Energy Expenditure (TDEE) using the Mifflin-St Jeor Equation."""
