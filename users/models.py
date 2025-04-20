@@ -140,3 +140,16 @@ class Log(models.Model):
         tdee = bmr * activity_multiplier.get(user.activity_level, 1.2)  # Default to 'Sedentary' if no match
 
         return tdee
+
+# API rate limit class to prevent users from making excessive calls
+class UserApiLimit(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='api_limit')
+    calls_remaining = models.PositiveIntegerField(default=500)
+    last_reset = models.DateField(default=timezone.now)  # Changed from auto_now_add
+    
+    def reset_if_needed(self):
+        today = timezone.now().date()
+        if self.last_reset < today:
+            self.calls_remaining = 500
+            self.last_reset = today
+            self.save()
