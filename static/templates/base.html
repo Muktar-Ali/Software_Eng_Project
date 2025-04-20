@@ -43,6 +43,43 @@
         {% block content %}
         {% endblock %}
         </div>
+
+        <!--Rate limiting with visual representation on bottom right corner of app-->
+        {% if user.is_authenticated %}
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const counter = document.createElement('div');
+            counter.className = 'api-counter';
+            counter.innerHTML = `
+                <i class="fas fa-bolt"></i>
+                <span>${ {{ remaining_calls }} }/${ {{ total_calls }} }</span>
+            `;
+            document.body.appendChild(counter);
+
+            const style = document.createElement('style');
+            style.textContent = `
+                .api-counter {
+                    position: fixed;
+                    bottom: 15px;
+                    right: 15px;
+                    background: rgba(40, 167, 69, 0.9);
+                    color: white;
+                    padding: 5px 12px;
+                    border-radius: 15px;
+                    font-size: 14px;
+                    z-index: 1000;
+                    display: flex;
+                    align-items: center;
+                }
+                .api-counter i {
+                    margin-right: 6px;
+                    font-size: 12px;
+                }
+            `;
+            document.head.appendChild(style);
+        });
+        </script>
+        {% endif %}
     </body>
 </html>
 <!-- 
@@ -68,36 +105,4 @@
     border-bottom: none;
 }
 
-/* DELETE LATER */
-/* Progress bar styling */
-.progress {
-    background-color: #f0f0f0;
-    border-radius: 10px;
-    overflow: hidden;
-}
-
-.progress-bar {
-    transition: width 0.6s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-}
-
-/* Table styling */
-.table-responsive {
-    overflow-x: auto;
-}
-
-.table {
-    width: 100%;
-    margin-bottom: 1rem;
-    color: #212529;
-}
-
-.table th, .table td {
-    padding: 0.75rem;
-    vertical-align: top;
-    border-top: 1px solid #dee2e6;
-}
 </style>

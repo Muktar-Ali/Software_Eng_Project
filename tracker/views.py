@@ -3,15 +3,17 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.utils import timezone
 from .fatsecret_api import FatSecretAPI
-from .models import ConsumedFood, FoodHistory
+from .models import ConsumedFood
 from .forms import FoodSearchForm, AddConsumedFoodForm
 from datetime import date, timedelta, datetime
 from users.models import Log
 from django.db.models import Sum, F
+from .decorators import fatsecret_rate_limit  # Import the decorator
 
 api = FatSecretAPI()
 
 @login_required
+@fatsecret_rate_limit
 def search_food(request):
     form = FoodSearchForm(request.GET or None)
     results = None
@@ -38,6 +40,7 @@ def search_food(request):
     })
 
 @login_required
+#@fatsecret_rate_limit
 def add_consumed_food(request, food_id=None):
     # Initialize form early
     form = AddConsumedFoodForm(request.POST or None)
@@ -150,6 +153,7 @@ def add_consumed_food(request, food_id=None):
     })
 
 @login_required
+#@fatsecret_rate_limit
 def calorie_log(request, days=7):
     end_date = timezone.now().date()
     start_date = end_date - timedelta(days=days-1)
