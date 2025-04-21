@@ -8,7 +8,7 @@ def update_log_calories(sender, instance, **kwargs):
     """Update the log whenever food entries change"""
     log = Log.objects.filter(
         user=instance.user,
-        created__date=instance.date_consumed
+        log_date=instance.date_consumed
     ).first()
     if log:
         log.update_calories()

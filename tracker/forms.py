@@ -1,7 +1,7 @@
 from django import forms
 from django.utils import timezone
 from .models import ConsumedFood  # Add this import at the top
-
+from django.utils.timezone import localtime
 class FoodSearchForm(forms.Form):
     query = forms.CharField(
         label='Search for food',
@@ -31,7 +31,7 @@ class AddConsumedFoodForm(forms.ModelForm):
     )
     date_consumed = forms.DateField(
         label='Date consumed',
-        initial=timezone.now().date,
+        initial=localtime(timezone.now()).date,
         widget=forms.DateInput(attrs={
             'type': 'date',
             'class': 'form-control'

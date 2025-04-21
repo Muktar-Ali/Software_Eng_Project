@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from tracker.fatsecret_api import FatSecretAPI
 from tracker.models import ConsumedFood 
 from django.utils import timezone
-
+from django.utils.timezone import localtime
 User = get_user_model()
 
 # Create your tests here.
@@ -28,7 +28,7 @@ class FatSecretAPITestCase(TestCase):
         """Sets up data for the test cases below"""
         self.api = FatSecretAPI()
         self.user = User.objects.create_user(**self.TEST_USER)
-        self.today = timezone.now().date()
+        self.today = localtime(timezone.now()).date()
 
 
     def test_get_access_token(self):

@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator
 from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import date
-
+from django.utils.timezone import localtime
 def no_whitespace_validator(value):
     if " " in value:
         raise ValidationError("This field cannot contain whitespace.")
@@ -60,7 +60,7 @@ class CustomUser(AbstractUser):
     def update_future_logs_tdee(self):
         """Update TDEE for today and future logs when any relevant metric changes"""
         from django.utils import timezone
-        today = timezone.now().date()
+        today = localtime(timezone.now()).date()
         
         logs = Log.objects.filter(
             user=self,
@@ -86,7 +86,7 @@ class Log(models.Model):
 
     @property
     def relative_date(self):
-        delta = timezone.now().date() - self.created.date()
+        delta = localtime(timezone.now()).date() - self.log_date
         if delta.days == 0:
             return "Today"
         elif delta.days == 1:
@@ -101,7 +101,7 @@ class Log(models.Model):
         
         self.dailyCalorieCount = ConsumedFood.objects.filter(
             user=self.user,
-            date_consumed=self.created.date()
+            date_consumed=self.log_date
         ).aggregate(
             total=Sum(F('servings') * F('calories_per_serving'))
         )['total'] or 0.0
@@ -148,7 +148,7 @@ class UserApiLimit(models.Model):
     last_reset = models.DateField(default=timezone.now)  # Changed from auto_now_add
     
     def reset_if_needed(self):
-        today = timezone.now().date()
+        today = localtime(timezone.now()).date()
         if self.last_reset < today:
             self.calls_remaining = 500
             self.last_reset = today

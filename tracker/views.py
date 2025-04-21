@@ -9,6 +9,7 @@ from datetime import date, timedelta, datetime
 from users.models import Log
 from django.db.models import Sum, F
 from .decorators import fatsecret_rate_limit  # Import the decorator
+from django.utils.timezone import localtime
 
 api = FatSecretAPI()
 
@@ -69,7 +70,7 @@ def add_consumed_food(request, food_id=None):
     if request.method == 'GET':
         initial_data = {
             'food_id': food_id,
-            'date_consumed': timezone.now().date()
+            'date_consumed': localtime(timezone.now()).date()
         }
         form = AddConsumedFoodForm(initial=initial_data)
     
@@ -94,7 +95,7 @@ def add_consumed_food(request, food_id=None):
             # Update log
             log, _ = Log.objects.get_or_create(
                 user=request.user,
-                created__date=date_consumed,
+                log_date=date_consumed,
                 defaults={'user': request.user}
             )
             log.dailyCalorieCount = ConsumedFood.objects.filter(
@@ -122,10 +123,10 @@ def add_consumed_food(request, food_id=None):
             # Update log
             log, _ = Log.objects.get_or_create(
                 user=request.user,
-                created__date=date.today(),
+                log_date=date.today(),
                 defaults={
                     'user': request.user,
-                    'created': timezone.now()  # Set actual datetime
+                    'log_date': localtime(timezone.now()).date()  # Set actual datetime
                 }
             )
             log.dailyCalorieCount = ConsumedFood.objects.filter(
@@ -155,13 +156,13 @@ def add_consumed_food(request, food_id=None):
 @login_required
 #@fatsecret_rate_limit
 def calorie_log(request, days=7):
-    end_date = timezone.now().date()
+    end_date = localtime(timezone.now()).date()
     start_date = end_date - timedelta(days=days-1)
     
     # Get/create today's log
-    today_log, created = Log.objects.get_or_create(
+    today_log, _ = Log.objects.get_or_create(
         user=request.user,
-        created__date=end_date,
+        log_date=end_date,
         defaults={'user': request.user}
     )
     ideal_intake = today_log.dailyOptimalCount  # This uses the TDEE calculation
@@ -175,7 +176,7 @@ def calorie_log(request, days=7):
         # Get log for the date if exists
         date_log = Log.objects.filter(
             user=request.user,
-            created__date=single_date
+            log_date=single_date
         ).first()
         
         log_entries.append({

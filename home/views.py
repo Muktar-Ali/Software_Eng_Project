@@ -10,6 +10,7 @@ from users.forms import SignupForm
 from users.models import *
 from django.utils import timezone
 from datetime import timedelta
+from django.utils.timezone import localtime
 # Create your views here.
 #This view inherits from Templateview
 class SignupView(CreateView):
@@ -31,15 +32,15 @@ class LoginInterfaceView(LoginView):
         return super().get(request, *args, **kwargs)
     
     def handle_user_login(self, user):
-        today = timezone.now().date()
+        today = localtime(timezone.now()).date()
         
         # Check if a log exists for today
-        if not Log.objects.filter(user=user, created__date=today).exists():
+        if not Log.objects.filter(user=user, log_date=today).exists():
             Log.objects.create(user=user)
         
         # Delete logs older than 7 days
-        seven_days_ago = timezone.now() - timedelta(days=7)
-        Log.objects.filter(user=user, created__lt=seven_days_ago).delete()
+        seven_days_ago = localtime(timezone.now()) - timedelta(days=7)
+        Log.objects.filter(user=user, log_date__lt=seven_days_ago).delete()
 
     def form_valid(self, form):
         # runs the previous method after a successful login

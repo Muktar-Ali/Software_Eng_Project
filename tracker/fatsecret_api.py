@@ -15,6 +15,7 @@ from django.db import models
 from .models import ConsumedFood
 from django.utils import timezone
 import logging
+from django.utils.timezone import localtime
 
 logger = logging.getLogger(__name__)
 
@@ -123,7 +124,7 @@ class FatSecretAPI:
     def tally_calories(self, user_id: int, date=None) -> float:
         """Calculate total calories for a user on a specific date"""
         if date is None:
-            date = timezone.now().date()
+            date = localtime(timezone.now()).date()
         
         consumed_foods = ConsumedFood.objects.filter(
             user_id=user_id,

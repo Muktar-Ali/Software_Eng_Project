@@ -60,4 +60,4 @@ class UserLogsView(LoginRequiredMixin, ListView):
     login_url = '/login'
     context_object_name = 'logs'
     def get_queryset(self):
-        return Log.objects.filter(user=self.request.user).order_by('-created')
+        return Log.objects.filter(user=self.request.user).order_by('-log_date')
