@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Profile Page</h1>
+<p>Welcome to the profile page! You can change all of your personal and physical information here.</p>
+<p>Changing your gender, age, height, weight or activity level can affect your calorie limit for today, which is calculated using the TDEE formula.</p>
+<p>Be careful when changing your username or password. It can have a serious affect on your account.</p>
+{% if messages %}
+    <div class="alert alert-success">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+<form method="POST" style="text-align: left; margin: 0 auto; width: 600px;">{% csrf_token %}
+    {{form.as_p}}
+    <input class='btn btn-success' type="submit" name="Update" value="Update"/>
+</form>
+{% endblock %}

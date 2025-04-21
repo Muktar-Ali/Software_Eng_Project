@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+{% if messages %}
+<div class="container mt-3">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<h2>Search Food</h2>
+<p>You create your calorie logs here! When you search for a food, the program pulls the top results from the FatSecret API.</p>
+<p>After you select your food, you can select the amount of serving sizes that you had for that food, as well as the date that you consumed the food.</p>
+<p>Then your calories get added to the log for the right day. If a log was not created for the day you selected, the program will make a log for you and add your calories to that log.</p>
+<form method="get">
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Search</button>
+</form>
+
+{% if results %}
+    <h3>Search Results</h3>
+    <div class="list-group mt-3">
+        {% for food in results %}
+            <div class="list-group-item">
+                <h5>{{ food.food_name }}</h5>
+                <p class="mb-1">Brand: {{ food.brand_name|default:"Generic" }}</p>
+                
+                {% if food.nutrition %}
+                <div class="nutrition-facts mb-2">
+                    <small class="text-muted">
+                        Nutrition per {{ food.nutrition.serving_description }}:
+                    </small>
+                    <div class="d-flex justify-content-between">
+                        <span>Calories: {{ food.nutrition.calories }}</span>
+                        <span>Protein: {{ food.nutrition.protein }}g</span>
+                        <span>Fat: {{ food.nutrition.fat }}g</span>
+                        <span>Carbs: {{ food.nutrition.carbs }}g</span>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Updated link using the parameterized URL -->
+                <a href="{% url 'tracker:add_consumed_food_with_param' food_id=food.food_id %}" class="btn btn-sm btn-success">
+                    Add to Log
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}

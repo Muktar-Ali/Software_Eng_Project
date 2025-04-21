@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!--text that displays when user logs in succesfully-->
+<h1>Main Page</h1>
+<p>Welcome, {{user.username}}!</p>
+<p>Here's your calorie progress for today.</p>
+<div style="display: flex; justify-content: center;">
+    <table style="border-collapse: collapse; width: 80%; text-align: center; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <thead style="background-color: #32d93a;">
+            <tr>
+                <th style="padding: 12px; border: 1px solid #ddd;">Today's Date</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Today's Calorie Count</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Today's Calorie Limit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in logs %}
+            <tr>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ log.log_date }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ log.dailyCalorieCount }}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">{{ log.dailyOptimalCount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
