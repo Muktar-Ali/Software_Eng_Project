@@ -4,7 +4,7 @@ from django.core.validators import MinValueValidator
 from users.models import *
 class ConsumedFood(models.Model):
     log = models.ForeignKey(
-        Log,
+        'users.Log',
         on_delete=models.CASCADE,
         related_name='consumed_foods',
         verbose_name="Log Entry"
