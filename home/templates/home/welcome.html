@@ -1,4 +1,29 @@
 {% extends 'base.html' %}
+{% load static %}
+{% block body_class %} back_image {% endblock %}
+
+{% block new_styles %}
+<style>
+    .back_image {
+        background-image: url("{% static 'fitness_back2.jpeg' %}");
+        background-size: cover;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+
+    @keyframes h1Bounce {
+        0% { transform: translateX(-100%) scale(2.5); }
+        50% { transform: translateY(-100px) scale(1.5);  }
+        100% { transform: translateY(10) scale(1.0); }
+    }
+    h1 {
+        animation: h1Bounce 3s ease-in-out;
+    }
+</style>
+{% endblock %}
+
+
+
 
 {% block content %}
     <h1>Welcome to CalTall!</h1>
