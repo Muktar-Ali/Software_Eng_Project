@@ -7,7 +7,8 @@ class ConsumedFood(models.Model):
         'users.Log',
         on_delete=models.CASCADE,
         related_name='consumed_foods',
-        verbose_name="Log Entry"
+        verbose_name="Log Entry",
+        null=True,
     )
     fatsecret_food_id = models.CharField(
         max_length=50,
