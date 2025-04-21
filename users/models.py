@@ -95,17 +95,14 @@ class Log(models.Model):
             return f"{delta.days} days ago"
     
     def update_calories(self):
-        """More efficient version using stored calories"""
         from tracker.models import ConsumedFood
         from django.db.models import Sum, F
-        
-        self.dailyCalorieCount = ConsumedFood.objects.filter(
-            user=self.user,
-            date_consumed=self.log_date
-        ).aggregate(
+
+        self.dailyCalorieCount = self.consumed_foods.aggregate(
             total=Sum(F('servings') * F('calories_per_serving'))
         )['total'] or 0.0
         self.save(update_fields=['dailyCalorieCount'])
+
 
     def save(self, *args, **kwargs):
         if not self.pk or 'dailyOptimalCount' not in kwargs.get('update_fields', []):

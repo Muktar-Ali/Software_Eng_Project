@@ -14,5 +14,6 @@ admin.site.register(models.CustomUser, CustomUserAdmin)
 class LogAdmin(admin.ModelAdmin):
     #specify which fileds to be displayed in the list view
     list_display = ("dailyCalorieCount", "dailyOptimalCount", "created", "user", "log_date")
+    search_fields = ["user__username"]
 #register the Log model with the LogAdmin model configuration
 admin.site.register(models.Log, LogAdmin)
