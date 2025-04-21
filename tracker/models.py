@@ -42,17 +42,3 @@ class ConsumedFood(models.Model):
         if calories is not None:
             return calories * self.servings
         return None
-
-class FoodHistory(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    food_name = models.CharField(max_length=255)
-    fatsecret_id = models.CharField(max_length=50)
-    last_consumed = models.DateTimeField(auto_now=True)
-    times_consumed = models.PositiveIntegerField(default=0)
-
-    class Meta:
-        verbose_name_plural = "Food Histories"
-        unique_together = ['user', 'fatsecret_id']
-
-    def __str__(self):
-        return f"{self.user.username}'s {self.food_name}"
