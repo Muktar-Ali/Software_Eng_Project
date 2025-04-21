@@ -1,12 +1,13 @@
 from django.db import models
 from django.conf import settings
 from django.core.validators import MinValueValidator
-
+from users.models import *
 class ConsumedFood(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
+    log = models.ForeignKey(
+        Log,
         on_delete=models.CASCADE,
-        verbose_name="User"
+        related_name='consumed_foods',
+        verbose_name="Log Entry"
     )
     fatsecret_food_id = models.CharField(
         max_length=50,
@@ -33,10 +34,6 @@ class ConsumedFood(models.Model):
         verbose_name = "Consumed Food"
         verbose_name_plural = "Consumed Foods"
         ordering = ['-date_consumed', '-created_at']
-        unique_together = ['user', 'fatsecret_food_id', 'date_consumed']
-
-    def __str__(self):
-        return f"{self.user.username} ate {self.servings} servings on {self.date_consumed}"
 
     def get_calories(self, api):
         """Calculate total calories for this food entry"""

@@ -3,6 +3,7 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from tracker.fatsecret_api import FatSecretAPI
 from tracker.models import ConsumedFood 
+from users.models import *
 from django.utils import timezone
 from django.utils.timezone import localtime
 User = get_user_model()
@@ -28,6 +29,7 @@ class FatSecretAPITestCase(TestCase):
         """Sets up data for the test cases below"""
         self.api = FatSecretAPI()
         self.user = User.objects.create_user(**self.TEST_USER)
+        self.user.log = Log.objects.create(user=self.user)
         self.today = localtime(timezone.now()).date()
 
 
@@ -84,7 +86,7 @@ class FatSecretAPITestCase(TestCase):
          
         # Creates a test case for 2 servings of Apples
         food_entry = ConsumedFood.objects.create(
-            user = self.user,
+            log = self.user.log,
             fatsecret_food_id = apple_id,
             servings = 2,
             date_consumed = self.today
@@ -93,7 +95,7 @@ class FatSecretAPITestCase(TestCase):
 
         # Gets the calories of apple and total calories
         apple_calories = self.api.get_calories(apple_id) # 72
-        total_calories = self.api.tally_calories(self.user.id, self.today)
+        total_calories = self.api.tally_calories(self.user.log.id, self.today)
 
         self.assertEqual(total_calories, apple_calories * 2)
         print(f"\nTest passed. Found: Total calories: {total_calories}") # 144.0 calories"""

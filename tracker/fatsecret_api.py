@@ -121,13 +121,13 @@ class FatSecretAPI:
             logger.error(f"Failed to parse calories for food {food_id}: {e}")
             return None
 
-    def tally_calories(self, user_id: int, date=None) -> float:
+    def tally_calories(self, log_id: int, date=None) -> float:
         """Calculate total calories for a user on a specific date"""
         if date is None:
             date = localtime(timezone.now()).date()
         
         consumed_foods = ConsumedFood.objects.filter(
-            user_id=user_id,
+            log_id=log_id,
             date_consumed=date
         )
 
