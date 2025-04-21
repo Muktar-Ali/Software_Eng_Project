@@ -8,12 +8,18 @@ from .models import *
 from .forms import ProfileUpdateForm
 from django.contrib.auth import update_session_auth_hash
 from django.contrib import messages
-
+from django.utils import timezone
+from datetime import timedelta
+from django.utils.timezone import localtime
 # Create your views here.
-class UserMainView(LoginRequiredMixin, TemplateView):
+class UserMainView(LoginRequiredMixin, ListView):
     #Specifies what template to use when rendering the view
     template_name = 'users/main.html'
     login_url = '/login'
+    context_object_name = 'logs'
+    def get_queryset(self):
+        today = localtime(timezone.now()).date()
+        return Log.objects.filter(user=self.request.user, log_date=today)
 
 class UserUpdateView(LoginRequiredMixin, UpdateView):
     model = CustomUser

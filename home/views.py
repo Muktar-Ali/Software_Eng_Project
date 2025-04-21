@@ -37,10 +37,6 @@ class LoginInterfaceView(LoginView):
         # Check if a log exists for today
         if not Log.objects.filter(user=user, log_date=today).exists():
             Log.objects.create(user=user)
-        
-        # Delete logs older than 7 days
-        seven_days_ago = localtime(timezone.now()) - timedelta(days=7)
-        Log.objects.filter(user=user, log_date__lt=seven_days_ago).delete()
 
     def form_valid(self, form):
         # runs the previous method after a successful login

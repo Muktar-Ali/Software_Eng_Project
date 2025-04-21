@@ -75,13 +75,13 @@ def add_consumed_food(request, food_id=None):
 
         
 
-        # ✅ Get or create log for the day and update calorie count
+        # Get or create log for the day and update calorie count
         log, _ = Log.objects.get_or_create(
             user=request.user,
             log_date=date_consumed,
             defaults={'user': request.user}
         )
-        # ✅ Always create a new ConsumedFood entry
+        # Always create a new ConsumedFood entry
         consumed_food = ConsumedFood.objects.create(
             log = log,
             fatsecret_food_id=food_id,

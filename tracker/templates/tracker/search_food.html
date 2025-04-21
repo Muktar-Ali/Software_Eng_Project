@@ -14,6 +14,9 @@
 {% endif %}
 
 <h2>Search Food</h2>
+<p>You create your calorie logs here! When you search for a food, the program pulls the top results from the FatSecret API.</p>
+<p>After you select your food, you can select the amount of serving sizes that you had for that food, as well as the date that you consumed the food.</p>
+<p>Then your calories get added to the log for the right day. If a log was not created for the day you selected, the program will make a log for you and add your calories to that log.</p>
 <form method="get">
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Search</button>
